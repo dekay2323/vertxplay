@@ -1,4 +1,4 @@
-import io.vertx.core.http.HttpServerResponse
+import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.Router
 
 def server = vertx.createHttpServer()
@@ -6,6 +6,7 @@ def router = Router.router(vertx)
 
 /**
  * My implementations of http://vertx.io/docs/vertx-web/groovy/
+ * It is a script
  * 
  */
 router.route("/").handler({routingContext ->
@@ -38,17 +39,31 @@ router.route('/catalog/:name/:id').handler({routingContext ->
 
     def response = routingContext.response()
     response.putHeader("content-type", "text/plain")
-    response.end("Hello World name:${name} and id:${id}")
+    response.end("Catalog  name:${name} and id:${id}")
 })
 
-// Refex param routing
-router.route().pathRegex('\\/([^\\/]+)\\/([^\\/]+)').handler({routingContext ->
-    def product = routingContext.request().getParam('param0')
-    def id = routingContext.request().getParam('param1')
+// Named capture groups
+router.routeWithRegex("\\/(?<product>[^\\/]+)\\/(?<id>[^\\/]+)").handler({ routingContext ->
+    def product = routingContext.request().getParam('product')
+    def id = routingContext.request().getParam('id')
 
     def response = routingContext.response()
     response.putHeader("content-type", "text/plain")
-    response.end("product:${product} and id:${id}")
+    response.end("Regex product:${product} and id:${id}")
+})
+
+// Multiple routes
+router.route("/post/").method(HttpMethod.GET).method(HttpMethod.POST).handler({ routingContext ->
+    def response = routingContext.response()
+    response.putHeader("content-type", "text/plain")
+    response.end("Post, with multiple routes")
+})
+
+// Consumes content type
+router.route("/text/").consumes("text/*").handler({ routingContext ->
+    def response = routingContext.response()
+    response.putHeader("content-type", "text/plain")
+    response.end("Consumes text")
 })
 
 server.requestHandler(router.&accept).listen(8080)
