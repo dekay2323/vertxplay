@@ -1,10 +1,8 @@
-import io.vertx.core.http.HttpClient
 import io.vertx.core.http.HttpServerResponse
 import io.vertx.ext.web.Router
-import io.vertx.groovy.core.http.HttpClient_GroovyExtension
 
-HttpClient server = vertx.createHttpServer()
-Router router = Router.router(vertx);
+def server = vertx.createHttpServer()
+def router = Router.router(vertx)
 
 router.route().handler({routingContext ->
     HttpServerResponse response = routingContext.response()
@@ -13,5 +11,5 @@ router.route().handler({routingContext ->
     response.end('Hello world from vert.x-web')
 })
 
-server.redirectHandler(router.&accept).listen(8080)
+server.requestHandler(router.&accept).listen(8080)
 
