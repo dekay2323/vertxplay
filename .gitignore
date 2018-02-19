@@ -26,4 +26,4 @@ hs_err_pid*
 .idea/
 .vertx/
 build/
-/vertxplay.iml
+vertxplay.iml
