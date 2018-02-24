@@ -2,6 +2,7 @@ import io.vertx.config.ConfigRetriever
 import io.vertx.config.ConfigRetrieverOptions
 import io.vertx.config.ConfigStoreOptions
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.Handler
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Logger
@@ -9,6 +10,7 @@ import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.auth.oauth2.OAuth2Auth
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.AuthHandler
 import io.vertx.ext.web.handler.OAuth2AuthHandler
 
@@ -27,7 +29,16 @@ class AuthVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void start() throws Exception {
+    void start() throws Exception {
+        Router router = Router.router(vertx);
+
+        vertx.exceptionHandler(new Handler<Throwable>() {
+            @Override
+            void handle(Throwable event) {
+                System.err.write("Exception has been thrown : " + event.printStackTrace());
+            }
+        })
+
         // Load in the config
         ConfigStoreOptions fileStore = new ConfigStoreOptions()
                 .setType("file")
@@ -39,7 +50,8 @@ class AuthVerticle extends AbstractVerticle {
             if (ar.failed()) {
                 logger.error("failed to retrieve config.");
             } else {
-                config().mergeIn(ar.result());
+                JsonObject json = JsonObject.mapFrom(ar.result());
+                config().mergeIn(json);
                 startServer();
             }
         })
@@ -48,18 +60,20 @@ class AuthVerticle extends AbstractVerticle {
 
     void startServer() {
         logger.info("startServer")
+
         Router router = Router.router(vertx);
 
+        router.route('/').handler(this.&home)
         AuthHandler authHandler = getOAuthHandler(router)
         router.route("/private/*").handler(authHandler)
         router.route("/private/secret")
                 .handler({ ctx ->
             ctx.response().end("Hi");
-        });
+        })
 
         vertx.createHttpServer()
                 .requestHandler(router.&accept)
-                .listen(config().getInteger("port"));
+                .listen(config().getInteger("port"))
     }
 
     AuthHandler getOAuthHandler(Router router) {
@@ -78,4 +92,12 @@ class AuthVerticle extends AbstractVerticle {
         authHandler.setupCallback(router.route())
         return authHandler
     }
+
+    // localhost:8080/
+    private void home(RoutingContext routingContext) {
+        logger.debug 'home'
+        def response = routingContext.response()
+        response.end('Home')
+    }
+
 }
