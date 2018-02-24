@@ -1,0 +1,7 @@
+{
+  "clientId": "0oae4muh0jw1QZ9Ej0h7",
+  "clientSecret": "-LkEK0YLeNhfKWo45uWYywz7nbDan3IQmixQ10jH",
+  "issuer": "http://dev-911844-admin.oktapreview.com/oauth2/default",
+  "callbackUrl": "http://localhost:8080/login",
+  "port": 8080
+}
